@@ -49,7 +49,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make('password')
+                'password' => Hash::make($request->input('password'))
             ]);
 
         } catch (ValidationException $e) {

@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TaskController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \App\Http\Controllers\UserController;
 
@@ -17,25 +19,27 @@ use \App\Http\Controllers\UserController;
 |
 */
 
-Route::get('/user', [UserController::class, 'index']);
-Route::get('/user/{id}', [UserController::class, 'getById']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/user', [UserController::class, 'index'])->middleware(['auth:sanctum']);
+Route::get('/user/{id}', [UserController::class, 'getById'])->middleware(['auth:sanctum']);
 Route::post('/user/create', [UserController::class, 'create']);
-Route::patch('/user/edit', [UserController::class, 'edit']);
+Route::patch('/user/edit', [UserController::class, 'edit'])->middleware(['auth:sanctum']);
 
 Route::get('/status', [StatusController::class, 'getAll']);
 Route::get('/status/{id}', [StatusController::class, 'getById']);
-Route::post('/status/create', [StatusController::class, 'create']);
-Route::patch('/status/edit', [StatusController::class, 'edit']);
+//Route::post('/status/create', [StatusController::class, 'create']);
+//Route::patch('/status/edit', [StatusController::class, 'edit']);
 
-Route::get('/projects', [ProjectController::class, 'getAll']);
-Route::get('/projects/{id}', [ProjectController::class, 'getById']);
-Route::post('/projects/create', [ProjectController::class, 'create']);
-Route::patch('/projects/edit', [ProjectController::class, 'edit']);
-Route::delete('/projects/{id}', [ProjectController::class, 'delete']);
+Route::get('/projects', [ProjectController::class, 'getAll'])->middleware(['auth:sanctum']);
+Route::get('/projects/{id}', [ProjectController::class, 'getById'])->middleware(['auth:sanctum']);
+Route::post('/projects/create', [ProjectController::class, 'create'])->middleware(['auth:sanctum']);
+Route::patch('/projects/edit', [ProjectController::class, 'edit'])->middleware(['auth:sanctum']);
+Route::delete('/projects/{id}', [ProjectController::class, 'delete'])->middleware(['auth:sanctum']);
 
-Route::get('/tasks', [TaskController::class, 'getAll']);
-Route::get('/tasks/{id}', [TaskController::class, 'getById']);
-Route::post('/tasks/create', [TaskController::class, 'create']);
-Route::patch('/tasks/edit', [TaskController::class, 'edit']);
-Route::delete('/tasks/{id}', [TaskController::class, 'delete']);
+Route::get('/tasks', [TaskController::class, 'getAll'])->middleware(['auth:sanctum']);
+Route::get('/tasks/{id}', [TaskController::class, 'getById'])->middleware(['auth:sanctum']);
+Route::post('/tasks/create', [TaskController::class, 'create'])->middleware(['auth:sanctum']);
+Route::patch('/tasks/edit', [TaskController::class, 'edit'])->middleware(['auth:sanctum']);
+Route::delete('/tasks/{id}', [TaskController::class, 'delete'])->middleware(['auth:sanctum']);
 
