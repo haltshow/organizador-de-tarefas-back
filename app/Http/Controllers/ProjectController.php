@@ -4,46 +4,97 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
 {
     public function getAll() {
-        $projects = Project::getAll();
+        $projects = Project::all();
 
-        return response()->json(['data' => $projects], 200);
+        return response()->json(['data' => $projects]);
     }
 
-    public function create(Request $request) {
-        $name = $request->input('name');
-        $description = $request->input('description');
-        $user_creator = $request->input('user_creator');
+    public function getById(string $id): JsonResponse
+    {
+        try {
+            $project = Project::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode());
+        } catch (Exception) {
+            return response()->json([
+                'message' => 'Something went wrong'
+            ], 500);
+        }
 
-        $project = Project::create([
-            'name' => $name,
-            'description' => $description,
-            'user_creator' => $user_creator
-        ]);
-
-        return response()->json(['data' => $project, 'message' => 'Project was successfully created'], 201);
+        return response()->json(['data' => $project]);
     }
 
-    public function edit(Request $request) {
-        $id = $request->input('id');
-        $name = $request->input('name');
-        $description = $request->input('description');
+    public function create(Request $request,): JsonResponse
+    {
+        try {
+            $request->validate([
+                'description' => 'required | string',
+                'user_creator' => 'required | int'
+            ]);
 
-        $project = Project::findOrFail($id);
+            $description = $request->input('description');
+            $user_creator = $request->input('user_creator');
 
-        $project->name = $name;
-        $project->description = $description;
+            $project = Project::create([
+                'description' => $description,
+                'user_creator' => $user_creator
+            ]);
 
-        $project->save();
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Exception) {
+            return response()->json([
+                'message' => 'Something went wrong'
+            ], 500);
+        }
 
-        return response()->json(['data' => $project, 'message' => 'Project was successfully edited'], 200);
+
+        return response()->json(['data' => $project], 201);
     }
 
-    public function delete(int $id) {
+    public function edit(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'id' => 'required',
+                'description' => 'required | string',
+            ]);
 
+            $id = $request->input('id');
+            $description = $request->input('description');
+
+            $project = Project::findOrFail($id);
+
+            $project->description = $description;
+            $project->save();
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode());
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (Exception) {
+            return response()->json([
+                'message' => 'Something went wrong'
+            ], 500);
+        }
+
+        return response()->json(['data' => $project]);
     }
 }
