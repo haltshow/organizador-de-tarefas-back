@@ -2,67 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\UserException;
-use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Models\Project;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-class UserController extends Controller
+class ProjectController extends Controller
 {
-    public function index(): JsonResponse
-    {
-        $users = User::all();
+    public function getAll() {
+        $projects = Project::all();
 
-        return response()->json(['data' => $users]);
+        return response()->json(['data' => $projects]);
     }
 
     public function getById(string $id): JsonResponse
     {
         try {
-            $user = User::findOrFail($id);
-        } catch(ModelNotFoundException) {
-            throw UserException::userNotFound();
+            $project = Project::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode());
         } catch (Exception) {
             return response()->json([
                 'message' => 'Something went wrong'
             ], 500);
         }
 
-        return response()->json(['data' => $user]);
+        return response()->json(['data' => $project]);
     }
 
-    public function create(Request $request): JsonResponse
+    public function create(Request $request,): JsonResponse
     {
         try {
             $request->validate([
-                'name' => 'required | string',
-                'email' => 'required | string',
-                'password' => 'required | string'
+                'description' => 'required | string',
+                'user_creator' => 'required | int'
             ]);
-            $name = $request->input('name');
-            $email = $request->input('email');
 
-            $user = User::create([
-                'name' => $name,
-                'email' => $email,
-                'password' => Hash::make($request->input('password'))
+            $description = $request->input('description');
+            $user_creator = $request->input('user_creator');
+
+            $project = Project::create([
+                'description' => $description,
+                'user_creator' => $user_creator
             ]);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ], 400);
-        } catch(Exception) {
+        } catch (Exception) {
             return response()->json([
                 'message' => 'Something went wrong'
             ], 500);
         }
 
-        return response()->json(['data' => $user], 201);
+
+        return response()->json(['data' => $project], 201);
     }
 
     public function edit(Request $request): JsonResponse
@@ -70,16 +70,17 @@ class UserController extends Controller
         try {
             $request->validate([
                 'id' => 'required',
+                'description' => 'required | string',
             ]);
 
             $id = $request->input('id');
-            $name = $request->input('name');
-            $password = $request->input('password');
+            $description = $request->input('description');
 
-            $user = User::findOrFail($id);
-            if ($name) $user->description = $name;
-            if ($password) $user->password = Hash::make('password');
-            $user->save();
+            $project = Project::findOrFail($id);
+
+            $project->description = $description;
+            $project->save();
+
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -94,6 +95,6 @@ class UserController extends Controller
             ], 500);
         }
 
-        return response()->json(['data' => $user]);
+        return response()->json(['data' => $project]);
     }
 }
